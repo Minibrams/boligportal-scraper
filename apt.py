@@ -80,7 +80,7 @@ if __name__ == '__main__':
             titles = [card.find_all('div', {'class': ['AdCard__title']})[0].decode_contents() for card in ad_cards]
             locations = [card.find_all('div', {'class': ['AdCard__location']})[0].decode_contents() for card in ad_cards]
             prices = [card.find_all('div', {'class': ['AdCard__price']})[0].decode_contents() for card in ad_cards]
-            prices = [float(price.replace(',-', '').strip()) for price in prices]
+            prices = [int(price.replace(',-', '').replace('.', '').strip()) for price in prices]
             urls = [card['href'] for card in ad_cards]
 
             # Construct apartment objects
@@ -97,7 +97,7 @@ if __name__ == '__main__':
                     
                 
                 with open('apartments.json', 'w+') as fp: 
-                    json.dump(seen_apartments, fp, indent=True)
+                    json.dump(seen_apartments, fp, indent=True, ensure_ascii=True)
             
             for _ in tqdm(range(60), desc='Waiting before refresh...'): 
                 sleep(1)
