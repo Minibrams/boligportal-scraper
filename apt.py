@@ -4,10 +4,13 @@ import json
 from time import sleep
 import vlc 
 from tqdm import tqdm  
+from selenium.webdriver.chrome.options import Options
 
 
 APT_URL = 'https://www.boligportal.dk/find?placeIds=76%2C75%2C2100%2C3921&minRooms=3'
-seen_apartments = []
+seen_apartments = {}
+
+MAX_PRICE = 8000
 
 
 def get_apartment_str(title, location, price, url): 
@@ -18,10 +21,14 @@ def new_apartments(apartments):
     new_apartments = []
     for title, location, price, url in apartments: 
 
-        if url not in seen_apartments and price < 8000: 
+        if url not in seen_apartments and price < MAX_PRICE: 
             new_apartments.append((title, location, price, url))
 
-        seen_apartments.append(url)
+        seen_apartments[url] = {
+            'title': title, 
+            'location': location, 
+            'price': price
+        }
     
     return new_apartments
 
@@ -54,8 +61,12 @@ if __name__ == '__main__':
 
     while True: 
         try:
+            print(f'Fetching pages...')
+            chrome_options = Options()
+            chrome_options.add_argument("--no-sandbox") # linux only
+            chrome_options.add_argument("--headless")
             # Get the URL and execute the JavaScript so we have the contents
-            driver = webdriver.PhantomJS()
+            driver = webdriver.Chrome(options=chrome_options)
             driver.get(APT_URL)
             rendered_source = driver.page_source
 
@@ -69,7 +80,7 @@ if __name__ == '__main__':
             titles = [card.find_all('div', {'class': ['AdCard__title']})[0].decode_contents() for card in ad_cards]
             locations = [card.find_all('div', {'class': ['AdCard__location']})[0].decode_contents() for card in ad_cards]
             prices = [card.find_all('div', {'class': ['AdCard__price']})[0].decode_contents() for card in ad_cards]
-            prices = [int(price.replace(',-', '').strip()) for price in prices]
+            prices = [float(price.replace(',-', '').strip()) for price in prices]
             urls = [card['href'] for card in ad_cards]
 
             # Construct apartment objects
@@ -92,4 +103,5 @@ if __name__ == '__main__':
                 sleep(1)
 
         except Exception as err: 
+            sleep(5)
             continue
