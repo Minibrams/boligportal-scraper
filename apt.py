@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 import json 
 from time import sleep
 import vlc 
-import pygame 
 from tqdm import tqdm  
 
 

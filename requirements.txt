@@ -1,0 +1,4 @@
+tqdm 
+python-vlc
+bs4
+selenium
